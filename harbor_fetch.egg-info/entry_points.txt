@@ -1,0 +1,2 @@
+[console_scripts]
+harbor-fetch = harbor_fetch.__main__:main
