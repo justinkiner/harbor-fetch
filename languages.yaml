@@ -1,7 +1,12 @@
-- E
-- S
-
-# - A
+languages:
+  - E # English
+  - S # Spanish
+  - A # Arabic
+  - TG # Tagalog
+  - K # Ukranian
+  - U # Russian
+  - HI # Hindi
+  
 # - AF
 # - AJR
 # - AK
@@ -51,7 +56,7 @@
 # - GL
 # - GU
 # - H
-# - HI
+
 # - HV
 # - I
 # - IB

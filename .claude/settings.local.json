@@ -4,7 +4,8 @@
       "Bash(.venv/bin/pip install *)",
       "Bash(.venv/bin/harbor-fetch *)",
       "Bash(curl -s \"https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS?output=json&pub=lffi&fileformat=PDF%2CEPUB%2CJWPUB&alllangs=0&langwritten=E&txtCMSLang=E\")",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS?output=json&pub=sjjm&fileformat=MP4&alllangs=0&langwritten=E&txtCMSLang=E\")"
     ]
   }
 }

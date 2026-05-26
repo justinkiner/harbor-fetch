@@ -1,7 +1,14 @@
-- lff
-- lffi
-- nwt
-- es26
-- es27
-- jwlb:E:APK
-- wcg:E
+default:
+  formats:
+    - JWPUB
+    - EPUB
+    - PDF
+
+products:
+  - lff
+  - lffi
+  - nwt
+  - es26
+  - es27
+  - jwlb:E:APK
+  - wcg:E
