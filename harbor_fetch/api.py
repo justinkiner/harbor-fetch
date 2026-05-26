@@ -1,4 +1,4 @@
-"""JW.org API helpers for fetching language metadata and publication download links."""
+"""JW.org API helpers for fetching language metadata and publication/video download links."""
 
 from dataclasses import dataclass
 from html import unescape
@@ -13,7 +13,7 @@ PUBMEDIA_URL = "https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS"
 class LanguageInfo:
     code: str
     name: str        # English name
-    vernacular: str  # Native (vernacular) name used in dir/file names
+    vernacular: str  # Native (vernacular) name
 
 
 @dataclass
@@ -24,6 +24,17 @@ class DownloadItem:
     format: str          # "PDF", "EPUB", or "JWPUB"
     url: str
     checksum: str | None  # MD5 hex digest provided by the API, or None if absent
+
+
+@dataclass
+class VideoItem:
+    symbol: str
+    lang_code: str
+    title: str           # Individual track title, used in file names
+    resolution: str      # e.g. "720p"
+    format: str          # e.g. "MP4"
+    url: str
+    checksum: str | None
 
 
 def fetch_language_metadata(codes: list[str]) -> dict[str, LanguageInfo]:
@@ -115,6 +126,76 @@ def fetch_pub_links(
                     format=fmt.upper(),
                     url=url,
                     checksum=checksum,
+                )
+            )
+
+    return items
+
+
+def fetch_video_links(
+    symbol: str,
+    lang_code: str,
+    resolution: str,
+    formats: str = "MP4",
+    tracks: list[int] | None = None,
+) -> list[VideoItem]:
+    """Return one VideoItem per track at the requested resolution for a video publication.
+
+    The PubMedia API returns every resolution for every track in a flat list.
+    This function filters to the desired resolution (matched case-insensitively
+    against the "label" field) and skips track=0 entries, which are ZIP bundles
+    of all files rather than individual videos.
+
+    If *tracks* is provided, only those track numbers are included.
+    """
+    params = {
+        "output": "json",
+        "pub": symbol,
+        "fileformat": formats,
+        "alllangs": "0",
+        "langwritten": lang_code,
+        "txtCMSLang": lang_code,
+    }
+    resp = requests.get(PUBMEDIA_URL, params=params, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+
+    files_by_lang: dict = data.get("files", {})
+    if lang_code in files_by_lang:
+        files_by_format: dict = files_by_lang[lang_code]
+    elif files_by_lang:
+        files_by_format = next(iter(files_by_lang.values()))
+    else:
+        return []
+
+    target_res = resolution.lower()
+    items: list[VideoItem] = []
+
+    for fmt, file_list in files_by_format.items():
+        for file_obj in file_list:
+            track_num: int = file_obj.get("track", 0)
+            # Skip track=0 — these are "Download All" ZIP bundles, not individual videos.
+            if track_num == 0:
+                continue
+            # If a track filter is specified, skip tracks not in the list.
+            if tracks is not None and track_num not in tracks:
+                continue
+            # Keep only entries matching the requested resolution.
+            if file_obj.get("label", "").lower() != target_res:
+                continue
+            file_meta: dict = file_obj.get("file", {})
+            url: str = file_obj.get("url") or file_meta.get("url", "")
+            if not url:
+                continue
+            items.append(
+                VideoItem(
+                    symbol=symbol,
+                    lang_code=lang_code,
+                    title=unescape(file_obj.get("title", "")).strip(),
+                    resolution=file_obj.get("label", resolution),
+                    format=fmt.upper(),
+                    url=url,
+                    checksum=file_meta.get("checksum") or None,
                 )
             )
 
