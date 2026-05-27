@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Build starter-kit zip
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          zip -j "dist/harbor-fetch-${VERSION}-starter-kit.zip" \
+            README.md \
+            languages.yaml \
+            products.yaml \
+            videos.yaml \
+            PROMPT.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
