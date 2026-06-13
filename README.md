@@ -1,6 +1,6 @@
 # Harbor Fetch
 
-A command-line tool that downloads JW.org publications and videos in multiple languages. Configuration is driven by three YAML files; running the tool fetches everything configured and saves it into per-language directories.
+A command-line tool that downloads JW.org publications and videos in multiple languages. Configuration is driven by two YAML files (`products.yaml` and `videos.yaml`); running the tool fetches everything configured and saves it into per-language directories.
 
 ## Setup
 
@@ -29,22 +29,18 @@ harbor-fetch --formats PDF,EPUB
 
 ## Configuration
 
-### `languages.yaml`
+Each config file carries its own language list, so publication and video downloads can target independent sets of languages.
 
-Lists the JW.org language codes to download for. Language codes are JW.org's own symbols, not ISO 639.
+### `products.yaml`
+
+Defines the languages, default formats, and publication symbols for publication downloads.
 
 ```yaml
 languages:
   - E   # English
   - S   # Spanish
   - TG  # Tagalog
-```
 
-### `products.yaml`
-
-Lists the publication symbols to download, with optional per-entry language and format overrides. Also defines the default download formats used when no override is specified and `--formats` is not passed on the command line.
-
-```yaml
 default:
   formats:
     - JWPUB
@@ -58,19 +54,23 @@ products:
   - wcg:E             # English only, default formats
 ```
 
-**Entry format:** `symbol{:optional language code}{:optional format}`
+**Product entry format:** `symbol{:optional language code}{:optional format}`
 
-- Two segments → `symbol:lang` (English only, default formats)
-- Three segments → `symbol:lang:format` (English only, that format only)
-- Empty segment → use the default: `symbol::PDF` means all languages, PDF only
+- Two segments → `symbol:lang` (that language only, default formats)
+- Three segments → `symbol:lang:format` (that language only, that format only)
+- Empty middle segment → `symbol::PDF` means all languages, PDF only
 
 When a format is specified per-product, it is the only value sent to the API for that product. The `--formats` flag is a post-fetch filter and does not affect per-product overrides.
 
 ### `videos.yaml`
 
-Lists video publication symbols to download, with an optional per-entry track filter. Also defines the default resolution and formats.
+Defines the languages, default resolution and formats, and video series for video downloads.
 
 ```yaml
+languages:
+  - E   # English
+  - S   # Spanish
+
 defaults:
   resolution: 720p
   formats:
@@ -81,9 +81,11 @@ videos:
   - sjjm:1,3,5      # only tracks 1, 3, and 5
 ```
 
-**Entry format:** `symbol{:track1,track2,...}`
+**Video entry format:** `symbol{:track1,track2,...}`
 
 Available resolutions: `240p`, `360p`, `480p`, `720p`.
+
+Language codes in both files use JW.org's own symbols, not ISO 639 (e.g. `E` for English, `S` for Spanish, `TG` for Tagalog).
 
 ## Output Structure
 
