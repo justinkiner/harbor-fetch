@@ -30,7 +30,6 @@ jobs:
           VERSION=${GITHUB_REF_NAME#v}
           zip -j "dist/harbor-fetch-${VERSION}-starter-kit.zip" \
             README.md \
-            languages.yaml \
             products.yaml \
             videos.yaml \
             PROMPT.md
