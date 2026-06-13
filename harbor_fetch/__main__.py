@@ -81,12 +81,12 @@ def main() -> None:
     args = parser.parse_args()
 
     # ── Config ────────────────────────────────────────────────────────────────
-    languages, publications, default_formats = load_config()
+    pub_languages, publications, default_formats = load_config()
     video_cfg = load_videos_config()
 
-    if not languages:
-        sys.exit("Error: no language codes found in languages.yaml")
-    if not publications and not video_cfg.symbols:
+    if not pub_languages and not video_cfg.languages:
+        sys.exit("Error: no language codes found in products.yaml or videos.yaml")
+    if not publications and not video_cfg.videos:
         sys.exit("Error: no publications found in products.yaml and no videos found in videos.yaml")
     if publications and not default_formats:
         sys.exit("Error: no default formats found in products.yaml under default.formats")
@@ -99,34 +99,37 @@ def main() -> None:
         else set(default_formats)
     )
 
-    pub_labels = []
-    for p in publications:
-        if p.lang_override or p.format_override:
-            pub_labels.append(f"{p.symbol}:{p.lang_override or ''}:{p.format_override or ''}")
-        else:
-            pub_labels.append(p.symbol)
-
-    print(f"Languages    : {', '.join(languages)}")
     if publications:
+        pub_labels = []
+        for p in publications:
+            if p.lang_override or p.format_override:
+                pub_labels.append(f"{p.symbol}:{p.lang_override or ''}:{p.format_override or ''}")
+            else:
+                pub_labels.append(p.symbol)
+        print(f"Pub languages: {', '.join(pub_languages)}")
         print(f"Publications : {', '.join(pub_labels)}")
         print(f"Formats      : {', '.join(sorted(wanted_formats))}")
+
     if video_cfg.videos:
         video_labels = [
             f"{v.symbol}:{','.join(str(t) for t in v.tracks)}" if v.tracks else v.symbol
             for v in video_cfg.videos
         ]
+        print(f"Vid languages: {', '.join(video_cfg.languages)}")
         print(f"Videos       : {', '.join(video_labels)}")
         print(f"Resolution   : {video_cfg.default_resolution}")
+
     print()
 
     # ── Language metadata ─────────────────────────────────────────────────────
+    all_languages = list(dict.fromkeys(pub_languages + video_cfg.languages))
     print("Fetching language metadata from JW.org...")
     try:
-        lang_meta = fetch_language_metadata(languages)
+        lang_meta = fetch_language_metadata(all_languages)
     except Exception as exc:
         sys.exit(f"Error fetching language metadata: {exc}")
 
-    unknown = [c for c in languages if c not in lang_meta]
+    unknown = [c for c in all_languages if c not in lang_meta]
     if unknown:
         print(f"Warning: language codes not found in JW.org API (skipping): {', '.join(unknown)}")
 
@@ -135,7 +138,7 @@ def main() -> None:
 
     # ── Publications ──────────────────────────────────────────────────────────
     if publications:
-        for lang_code in languages:
+        for lang_code in pub_languages:
             if lang_code not in lang_meta:
                 continue
 
@@ -184,7 +187,7 @@ def main() -> None:
     if video_cfg.videos:
         video_fmt_str = ",".join(video_cfg.default_formats)
 
-        for lang_code in languages:
+        for lang_code in video_cfg.languages:
             if lang_code not in lang_meta:
                 continue
 
@@ -226,7 +229,6 @@ def main() -> None:
                         f"{item.symbol}-{item.lang_code}-{item.resolution}-{item.title}.{item.format.lower()}"
                     )
                     _handle_file(lang_dir / filename, item.url, item.checksum, args.dry_run, counters)
-
 
             print()
 

@@ -25,10 +25,15 @@ python -m harbor_fetch
 
 ## Configuration
 
-- **`languages.yaml`** — list of language codes (e.g. `E`, `S`, `K`) using JW.org's own symbols (not ISO 639)
-- **`products.yaml`** — list of publication symbols. Entry format: `symbol{:optional lang code}{:optional format}`. Examples: `nwt` (all languages, default formats), `jwlb:E` (English only, default formats), `jwlb::APK` (all languages, APK only), `jwlb:E:APK` (English only, APK only). When a format is specified it is the only value sent to the API; the global `--formats` flag is a post-fetch filter and does not affect the API call.
+- **`products.yaml`** — language codes and publication symbols for publication downloads. Top-level `languages` key holds language codes (e.g. `E`, `S`, `K`) using JW.org's own symbols (not ISO 639). Entry format for products: `symbol{:optional lang code}{:optional format}`. Examples: `nwt` (all languages, default formats), `jwlb:E` (English only, default formats), `jwlb::APK` (all languages, APK only), `jwlb:E:APK` (English only, APK only). When a format is specified it is the only value sent to the API; the global `--formats` flag is a post-fetch filter and does not affect the API call.
+- **`videos.yaml`** — language codes and video series for video downloads. Top-level `languages` key holds language codes independently of publications.
 
-`config.py:load_config()` reads both files and returns `(languages, publications)`.
+Each config file has its own `languages` list, so publication and video downloads can target different sets of languages.
+
+`languages.yaml` is no longer read and can be removed; it is kept only as a reference for available language codes.
+
+`config.py:load_config()` reads `products.yaml` and returns `(languages, publications, default_formats)`.
+`config.py:load_videos_config()` reads `videos.yaml` and returns a `VideoConfig` (which includes `.languages`).
 
 ## Package Structure
 

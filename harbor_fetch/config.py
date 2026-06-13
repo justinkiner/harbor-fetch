@@ -21,20 +21,15 @@ class Video:
 
 @dataclass
 class VideoConfig:
+    languages: list[str]
     videos: list[Video]
     default_formats: list[str]   # e.g. ["MP4", "M4V"]
     default_resolution: str      # e.g. "720p"
 
 
-def _load_yaml_list(path: Path, key: str) -> list[str]:
-    if not path.exists():
-        return []
-    with path.open() as f:
-        data = yaml.safe_load(f)
-    if not data:
-        return []
-    items = data.get(key, []) if isinstance(data, dict) else data
-    return [str(item).strip() for item in items if item]
+def _read_lang_list(data: dict) -> list[str]:
+    raw = data.get("languages", []) if isinstance(data, dict) else []
+    return [str(item).strip() for item in raw if item]
 
 
 def _parse_publication(entry: str) -> Publication:
@@ -56,20 +51,16 @@ def _parse_publication(entry: str) -> Publication:
 
 
 def load_config(base_dir: Path | None = None) -> tuple[list[str], list[Publication], list[str]]:
-    """Return (language_codes, publications, default_formats) from YAML config files.
-
-    Languages are read from languages.yaml. Publications and default formats are
-    read from products.yaml. Both files are resolved relative to base_dir (defaults to cwd).
-    """
+    """Return (language_codes, publications, default_formats) from products.yaml."""
     base = base_dir or Path.cwd()
-
-    languages = _load_yaml_list(base / "languages.yaml", "languages")
 
     products_path = base / "products.yaml"
     products_data: dict = {}
     if products_path.exists():
         with products_path.open() as f:
             products_data = yaml.safe_load(f) or {}
+
+    languages = _read_lang_list(products_data)
 
     raw_products = products_data.get("products", []) if isinstance(products_data, dict) else products_data
     publications = [_parse_publication(str(e).strip()) for e in raw_products if e]
@@ -98,6 +89,9 @@ def load_videos_config(base_dir: Path | None = None) -> VideoConfig:
     """Return video entries and defaults from videos.yaml.
 
     videos.yaml structure:
+        languages:
+          - E
+          - S
         defaults:
           resolution: 720p
           formats:
@@ -111,11 +105,12 @@ def load_videos_config(base_dir: Path | None = None) -> VideoConfig:
     videos_path = base / "videos.yaml"
 
     if not videos_path.exists():
-        return VideoConfig(videos=[], default_formats=["MP4"], default_resolution="720p")
+        return VideoConfig(languages=[], videos=[], default_formats=["MP4"], default_resolution="720p")
 
     with videos_path.open() as f:
         data = yaml.safe_load(f) or {}
 
+    languages = _read_lang_list(data)
     raw_videos = data.get("videos", []) if isinstance(data, dict) else []
     videos = [_parse_video(str(s).strip()) for s in raw_videos if s]
 
@@ -124,4 +119,9 @@ def load_videos_config(base_dir: Path | None = None) -> VideoConfig:
     default_formats = [str(f).strip().upper() for f in raw_formats if f]
     default_resolution = str(defaults.get("resolution", "720p")).strip()
 
-    return VideoConfig(videos=videos, default_formats=default_formats, default_resolution=default_resolution)
+    return VideoConfig(
+        languages=languages,
+        videos=videos,
+        default_formats=default_formats,
+        default_resolution=default_resolution,
+    )
