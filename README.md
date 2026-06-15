@@ -4,11 +4,41 @@ A command-line tool that downloads JW.org publications and videos in multiple la
 
 ## Setup
 
+### Windows
+
+1. Go to the [Releases page](https://github.com/justinkiner/harbor-fetch/releases/latest) and download `harbor-fetch.exe`.
+2. Create a folder for your work (e.g. `C:\Users\You\harbor-fetch`).
+3. Move `harbor-fetch.exe` into that folder.
+4. Download `products.yaml` and `videos.yaml` from this repository and place them in the same folder. Edit them to configure which languages and publications you want.
+5. Open **Command Prompt**, navigate to your folder, and run:
+
+```cmd
+harbor-fetch.exe
+```
+
+To open Command Prompt in a specific folder: open the folder in File Explorer, click the address bar, type `cmd`, and press Enter.
+
+### macOS
+
+Requires Python 3.10 or later. Check your version with `python3 --version`; if needed, download Python from [python.org](https://www.python.org/downloads/).
+
+1. Download or clone this repository.
+2. Open **Terminal** and navigate to the repository folder.
+3. Create a virtual environment, activate it, and install the tool:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
+
+4. Run the tool:
+
+```bash
+harbor-fetch
+```
+
+> **Note:** You must activate the virtual environment (`source .venv/bin/activate`) each time you open a new Terminal window before running `harbor-fetch`.
 
 ## Usage
 
@@ -26,6 +56,8 @@ harbor-fetch --output ~/Downloads/JW
 harbor-fetch --formats PDF
 harbor-fetch --formats PDF,EPUB
 ```
+
+On Windows, replace `harbor-fetch` with `harbor-fetch.exe` in any command above.
 
 ## Configuration
 
