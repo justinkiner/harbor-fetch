@@ -4,12 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harbor-fetch"
-version = "0.3.0"
+version = "0.4.0"
 description = "Download JW.org publications in multiple languages and formats"
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.31",
     "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
 ]
 
 [project.scripts]
@@ -18,3 +23,6 @@ harbor-fetch = "harbor_fetch.__main__:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["harbor_fetch*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

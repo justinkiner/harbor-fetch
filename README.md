@@ -55,6 +55,9 @@ harbor-fetch --output ~/Downloads/JW
 # Override the download formats for this run only
 harbor-fetch --formats PDF
 harbor-fetch --formats PDF,EPUB
+
+# Name saved files using English titles instead of vernacular titles
+harbor-fetch --english-titles
 ```
 
 On Windows, replace `harbor-fetch` with `harbor-fetch.exe` in any command above.
@@ -135,5 +138,7 @@ downloads/
 **Publication file naming:** `{symbol}-{lang}-{vernacular title}.{ext}`
 
 **Video file naming:** `{symbol}-{lang}-{resolution}-{track title}.{ext}`
+
+By default, files are named with the vernacular (native-language) title. Pass `--english-titles` to use each item's English title instead, while still downloading the files in the configured language. When a publication or video has no English edition, the vernacular title is used as a fallback.
 
 On re-runs, files are skipped if the local MD5 matches the checksum provided by the API. A message is printed for each skipped file. Publications unavailable in a given language print `Does not exist for {language}` rather than an error.
