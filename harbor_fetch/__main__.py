@@ -6,7 +6,15 @@ from pathlib import Path
 
 from requests.exceptions import HTTPError
 
-from harbor_fetch.api import fetch_language_metadata, fetch_pub_links, fetch_video_links
+from harbor_fetch.api import (
+    DownloadItem,
+    VideoItem,
+    fetch_language_metadata,
+    fetch_pub_english_name,
+    fetch_pub_links,
+    fetch_video_english_titles,
+    fetch_video_links,
+)
 from harbor_fetch.config import load_config, load_videos_config
 from harbor_fetch.downloader import download_file, md5_of_file
 
@@ -18,6 +26,26 @@ _UNSAFE = set(r'\/:*?"<>|')
 def _safe(name: str) -> str:
     """Replace filesystem-unsafe characters with underscores."""
     return "".join(c if c not in _UNSAFE else "_" for c in name)
+
+
+def pub_filename(item: DownloadItem, english_title: str | None = None) -> str:
+    """Build the on-disk filename for a publication download item.
+
+    Uses *english_title* when provided (for --english-titles); otherwise falls
+    back to the item's vernacular pub_name.
+    """
+    title = english_title or item.pub_name
+    return _safe(f"{item.pub_symbol}-{item.lang_code}-{title}.{item.format.lower()}")
+
+
+def video_filename(item: VideoItem, english_title: str | None = None) -> str:
+    """Build the on-disk filename for a video download item.
+
+    Uses *english_title* when provided (for --english-titles); otherwise falls
+    back to the item's vernacular track title.
+    """
+    title = english_title or item.title
+    return _safe(f"{item.symbol}-{item.lang_code}-{item.resolution}-{title}.{item.format.lower()}")
 
 
 def _handle_file(
@@ -77,6 +105,15 @@ def main() -> None:
         "--dry-run",
         action="store_true",
         help="Print what would be downloaded without writing any files",
+    )
+    parser.add_argument(
+        "--english-titles",
+        action="store_true",
+        help=(
+            "Name saved files using each item's English title instead of the "
+            "vernacular title (falls back to the vernacular title when no "
+            "English edition exists). Default: vernacular titles."
+        ),
     )
     args = parser.parse_args()
 
@@ -177,8 +214,14 @@ def main() -> None:
 
                 print(f"{len(items)} file(s)")
 
+                # All editions of a publication share one title; resolve the
+                # English name once and fall back to the vernacular pubName.
+                pub_title = None
+                if args.english_titles:
+                    pub_title = fetch_pub_english_name(pub.symbol, api_formats)
+
                 for item in items:
-                    filename = _safe(f"{item.pub_symbol}-{item.lang_code}-{item.pub_name}.{item.format.lower()}")
+                    filename = pub_filename(item, pub_title)
                     _handle_file(lang_dir / filename, item.url, item.checksum, args.dry_run, counters)
 
             print()
@@ -224,10 +267,14 @@ def main() -> None:
 
                 print(f"{len(items)} file(s)")
 
+                # Map track number -> English title; fall back per track to the
+                # vernacular title when no English edition/track exists.
+                english_titles = {}
+                if args.english_titles:
+                    english_titles = fetch_video_english_titles(video.symbol, video_fmt_str)
+
                 for item in items:
-                    filename = _safe(
-                        f"{item.symbol}-{item.lang_code}-{item.resolution}-{item.title}.{item.format.lower()}"
-                    )
+                    filename = video_filename(item, english_titles.get(item.track))
                     _handle_file(lang_dir / filename, item.url, item.checksum, args.dry_run, counters)
 
             print()
