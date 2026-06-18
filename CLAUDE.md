@@ -18,10 +18,25 @@ harbor-fetch                          # download everything
 harbor-fetch --dry-run                # preview without downloading
 harbor-fetch -o /path/to/dir          # custom output directory
 harbor-fetch --formats PDF            # restrict to specific formats
+harbor-fetch --english-titles         # name files with English titles, not vernacular
 
 # Also runnable as a module
 python -m harbor_fetch
 ```
+
+## Testing
+
+```bash
+pip install -e ".[dev]"   # installs pytest
+pytest                    # run the full suite
+
+# Useful subsets
+pytest tests/test_api.py              # English-title lookups, fallbacks, caching
+pytest tests/test_naming.py           # filename construction / sanitizing
+pytest tests/test_cli_integration.py  # end-to-end main() over a mocked HTTP layer
+```
+
+Tests mock at the `requests.get` boundary, so the suite is fully offline and deterministic. The integration test runs `main()` in a temp directory with generated config files and asserts on the files written to disk.
 
 ## Configuration
 
@@ -71,3 +86,5 @@ Only `file_list[0]` is used — the complete edition, not individual chapters.
 **File:** `{pub-symbol}-{lang-code}-{vernacular-pub-name}.{ext}` → `nwt-E-New World Translation of the Holy Scriptures (2013 Revision).pdf`
 
 Characters unsafe in filenames (`\ / : * ? " < > |`) are replaced with `_` by `_safe()` in `__main__.py`.
+
+**English titles (`--english-titles`):** by default file names use the vernacular (langwritten) title. With this flag, names use the English title while the files themselves remain in the configured language. Because the API's `pubName` and per-track `title` fields always reflect `langwritten` (not `txtCMSLang`), the English title is obtained via a second query with `langwritten=E`: `api.py:fetch_pub_english_name(symbol, formats)` for publications and `api.py:fetch_video_english_titles(symbol, formats)` (returning `{track: title}`, matched to `VideoItem.track`) for videos. Both are `lru_cache`d and return `None`/`{}` on 404 or error so callers fall back to the vernacular title. The publication lookup reuses the publication's own format string — mixing incompatible formats (e.g. text with audio/video) makes the API return 400 for some publications.
