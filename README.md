@@ -118,14 +118,18 @@ defaults:
     - mp4
 
 videos:
-  - wsb             # all tracks
+  - wsb             # all tracks (publication symbol)
   - sjjm:1,3,5      # only tracks 1, 3, and 5
   - gnj:2           # track 2 only
+  - 502014331       # all tracks (document ID)
+  - 502014331:1     # track 1 only (document ID)
 ```
 
-**Video entry format:** `symbol{:track1,track2,...}`
+**Video entry format:** `symbol{:track1,track2,...}` or `docid{:track1,track2,...}`
 
-Tracks correspond to individual episodes or parts within a video series. Omitting the track list downloads every available track; specifying a comma-separated list downloads only those tracks. For example, `gnj:1,2,3` fetches only the first three episodes of the series.
+Videos can be identified by publication symbol (e.g. `wsb`) or by numeric document ID (e.g. `502014331`). The two forms are mutually exclusive — an entry is treated as a document ID when it is entirely numeric, and as a publication symbol otherwise.
+
+Tracks correspond to individual episodes or parts within a video series. Omitting the track list downloads every available track; specifying a comma-separated list downloads only those tracks. For example, `gnj:1,2,3` fetches only the first three episodes of the series. Track filtering works the same for both symbols and document IDs.
 
 Available resolutions: `240p`, `360p`, `480p`, `720p`.
 
