@@ -28,7 +28,7 @@ class VideoConfig:
 
 
 def _read_lang_list(data: dict) -> list[str]:
-    raw = data.get("languages", []) if isinstance(data, dict) else []
+    raw = (data.get("languages") or []) if isinstance(data, dict) else []
     return [str(item).strip() for item in raw if item]
 
 
@@ -62,10 +62,10 @@ def load_config(base_dir: Path | None = None) -> tuple[list[str], list[Publicati
 
     languages = _read_lang_list(products_data)
 
-    raw_products = products_data.get("products", []) if isinstance(products_data, dict) else products_data
+    raw_products = (products_data.get("products") or []) if isinstance(products_data, dict) else (products_data or [])
     publications = [_parse_publication(str(e).strip()) for e in raw_products if e]
 
-    raw_formats = (products_data.get("default", {}) or {}).get("formats", [])
+    raw_formats = ((products_data.get("default") or {}).get("formats") or [])
     default_formats = [str(f).strip().upper() for f in raw_formats if f]
 
     return languages, publications, default_formats
@@ -111,11 +111,11 @@ def load_videos_config(base_dir: Path | None = None) -> VideoConfig:
         data = yaml.safe_load(f) or {}
 
     languages = _read_lang_list(data)
-    raw_videos = data.get("videos", []) if isinstance(data, dict) else []
+    raw_videos = (data.get("videos") or []) if isinstance(data, dict) else []
     videos = [_parse_video(str(s).strip()) for s in raw_videos if s]
 
-    defaults = (data.get("defaults", {}) or {})
-    raw_formats = defaults.get("formats", ["MP4"])
+    defaults = (data.get("defaults") or {})
+    raw_formats = defaults.get("formats") or ["MP4"]
     default_formats = [str(f).strip().upper() for f in raw_formats if f]
     default_resolution = str(defaults.get("resolution", "720p")).strip()
 
