@@ -160,10 +160,11 @@ def main() -> None:
     if publications:
         pub_labels = []
         for p in publications:
+            base = f"{p.symbol}-{p.issue}" if p.issue else p.symbol
             if p.lang_override or p.format_override:
-                pub_labels.append(f"{p.symbol}:{p.lang_override or ''}:{p.format_override or ''}")
+                pub_labels.append(f"{base}:{p.lang_override or ''}:{p.format_override or ''}")
             else:
-                pub_labels.append(p.symbol)
+                pub_labels.append(base)
         print(f"Pub languages: {', '.join(pub_languages)}")
         print(f"Publications : {', '.join(pub_labels)}")
         print(f"Formats      : {', '.join(sorted(wanted_formats))}")
@@ -209,13 +210,14 @@ def main() -> None:
                 if pub.lang_override and pub.lang_override != lang_code:
                     continue
 
-                print(f"  {pub.symbol}: ", end="", flush=True)
+                pub_label = f"{pub.symbol}-{pub.issue}" if pub.issue else pub.symbol
+                print(f"  {pub_label}: ", end="", flush=True)
 
                 api_formats = pub.format_override or default_fmt_str
                 active_formats = {pub.format_override} if pub.format_override else wanted_formats
 
                 try:
-                    items = fetch_pub_links(pub.symbol, lang_code, formats=api_formats)
+                    items = fetch_pub_links(pub.symbol, lang_code, formats=api_formats, issue=pub.issue)
                 except HTTPError as exc:
                     msg, is_err = _http_error_message(exc, info.name)
                     print(msg)
@@ -239,7 +241,7 @@ def main() -> None:
                 # English name once and fall back to the vernacular pubName.
                 pub_title = None
                 if args.english_titles:
-                    pub_title = fetch_pub_english_name(pub.symbol, api_formats)
+                    pub_title = fetch_pub_english_name(pub.symbol, api_formats, pub.issue)
 
                 for item in items:
                     filename = pub_filename(item, pub_title)

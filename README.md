@@ -93,6 +93,8 @@ products:
   - jwlb:E:APK        # English only, APK only
   - lff::EPUB         # all languages, EPUB only
   - wcg:E             # English only, default formats
+  - g-202011          # Awake! No. 3 2020, all languages, default formats
+  - wp-202001:E       # Watchtower No. 1 2020, English only
 ```
 
 **Product entry format:** `symbol{:optional language code}{:optional format}`
@@ -100,6 +102,8 @@ products:
 - Two segments → `symbol:lang` (that language only, default formats)
 - Three segments → `symbol:lang:format` (that language only, that format only)
 - Empty middle segment → `symbol::PDF` means all languages, PDF only
+
+**Periodicals** (magazines and similar dated publications) use the format `symbol-issue` where `issue` is the six-digit date (YYYYMM). For example, `g-202011` downloads issue 202011 of Awake! and `wp-202001` downloads issue 202001 of The Watchtower. Language and format modifiers work the same way as for regular publications (e.g. `g-202011:E:PDF`). The issue date is included in the downloaded filename: `g-202011-E-Awake! No. 3 2020.epub`.
 
 When a format is specified per-product, it is the only value sent to the API for that product. The `--formats` flag is a post-fetch filter and does not affect per-product overrides.
 

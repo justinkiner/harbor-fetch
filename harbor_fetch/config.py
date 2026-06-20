@@ -1,9 +1,12 @@
 """Load language codes and publication symbols from YAML config files."""
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
+
+_PERIODICAL_RE = re.compile(r'^([A-Za-z]+)-(\d+)$')
 
 
 @dataclass
@@ -11,6 +14,7 @@ class Publication:
     symbol: str
     lang_override: str | None    # restrict to this language code; None means all languages
     format_override: str | None  # e.g. "APK"; None means use the global --formats flag
+    issue: str | None = None     # e.g. "202011" for periodicals like g-202011
 
 
 @dataclass
@@ -43,12 +47,21 @@ def _parse_publication(entry: str) -> Publication:
       jwlb:E       → English only, default formats
       jwlb::APK    → all languages, APK only
       jwlb:E:APK   → English only, APK only
+      g-202011     → periodical: symbol=g, issue=202011, all languages, default formats
+      g-202011:E   → periodical: English only
     """
     parts = [p.strip() for p in entry.split(":")]
-    symbol = parts[0]
+    raw_symbol = parts[0]
     lang_override = parts[1].upper() if len(parts) > 1 and parts[1] else None
     format_override = parts[2].upper() if len(parts) > 2 and parts[2] else None
-    return Publication(symbol=symbol, lang_override=lang_override, format_override=format_override)
+
+    m = _PERIODICAL_RE.match(raw_symbol)
+    if m:
+        symbol, issue = m.group(1), m.group(2)
+    else:
+        symbol, issue = raw_symbol, None
+
+    return Publication(symbol=symbol, lang_override=lang_override, format_override=format_override, issue=issue)
 
 
 def load_config(base_dir: Path | None = None) -> tuple[list[str], list[Publication], list[str]]:

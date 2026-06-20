@@ -76,6 +76,7 @@ def fetch_pub_links(
     pub_symbol: str,
     lang_code: str,
     formats: str = "PDF,EPUB,JWPUB",
+    issue: str | None = None,
 ) -> list[DownloadItem]:
     """Return download items for every available format of a publication/language pair.
 
@@ -87,8 +88,10 @@ def fetch_pub_links(
     standard/complete edition rather than individual chapters or parts).
 
     *formats* is the comma-separated list of formats to request from the API.
+    Pass *issue* (e.g. "202011") for periodicals; it is sent as the API's
+    ``issue`` parameter and included in the returned DownloadItem's pub_symbol.
     """
-    params = {
+    params: dict = {
         "output": "json",
         "pub": pub_symbol,
         "fileformat": formats,
@@ -96,11 +99,18 @@ def fetch_pub_links(
         "langwritten": lang_code,
         "txtCMSLang": lang_code,
     }
+    if issue:
+        params["issue"] = issue
     resp = requests.get(PUBMEDIA_URL, params=params, timeout=30)
     resp.raise_for_status()
     data = resp.json()
 
-    pub_name: str = unescape(data.get("pubName") or data.get("title") or pub_symbol).strip()
+    display_symbol = f"{pub_symbol}-{issue}" if issue else pub_symbol
+    pub_name: str = unescape(data.get("pubName") or data.get("title") or display_symbol).strip()
+    if issue:
+        formatted_date = unescape(data.get("formattedDate") or "").strip()
+        if formatted_date:
+            pub_name = f"{pub_name} {formatted_date}"
 
     # Navigate to the per-format dict for this language.
     files_by_lang: dict = data.get("files", {})
@@ -122,7 +132,7 @@ def fetch_pub_links(
         if url:
             items.append(
                 DownloadItem(
-                    pub_symbol=pub_symbol,
+                    pub_symbol=display_symbol,
                     lang_code=lang_code,
                     pub_name=pub_name,
                     format=fmt.upper(),
@@ -219,7 +229,7 @@ def fetch_video_links(
 
 
 @functools.lru_cache(maxsize=None)
-def fetch_pub_english_name(pub_symbol: str, formats: str = "EPUB,PDF,JWPUB") -> str | None:
+def fetch_pub_english_name(pub_symbol: str, formats: str = "EPUB,PDF,JWPUB", issue: str | None = None) -> str | None:
     """Return the English title of a publication, or None if unavailable.
 
     Queries the PubMedia API with langwritten=E. Pass the same *formats* used
@@ -228,9 +238,10 @@ def fetch_pub_english_name(pub_symbol: str, formats: str = "EPUB,PDF,JWPUB") -> 
     reusing the known-valid format string for the publication avoids that.
     Returns None on a 404 (no English edition), a 400, or any request error,
     so callers can fall back to the vernacular title. Cached per (symbol,
-    formats).
+    formats, issue).
+    Pass *issue* for periodicals (e.g. "202011").
     """
-    params = {
+    params: dict = {
         "output": "json",
         "pub": pub_symbol,
         "fileformat": formats,
@@ -238,6 +249,8 @@ def fetch_pub_english_name(pub_symbol: str, formats: str = "EPUB,PDF,JWPUB") -> 
         "langwritten": "E",
         "txtCMSLang": "E",
     }
+    if issue:
+        params["issue"] = issue
     try:
         resp = requests.get(PUBMEDIA_URL, params=params, timeout=30)
         resp.raise_for_status()
@@ -246,7 +259,12 @@ def fetch_pub_english_name(pub_symbol: str, formats: str = "EPUB,PDF,JWPUB") -> 
 
     data = resp.json()
     name = data.get("pubName") or data.get("title")
-    return unescape(name).strip() if name else None
+    pub_name = unescape(name).strip() if name else None
+    if pub_name and issue:
+        formatted_date = unescape(data.get("formattedDate") or "").strip()
+        if formatted_date:
+            pub_name = f"{pub_name} {formatted_date}"
+    return pub_name
 
 
 @functools.lru_cache(maxsize=None)

@@ -28,10 +28,12 @@ from harbor_fetch.__main__ import main
 NWT_S_URL = "http://files.example/nwt_S.epub"
 SJJM_S_URL = "http://files.example/sjjm_S_1_720p.mp4"
 DOCID_S_URL = "http://files.example/docid_502014331_S_1_720p.mp4"
+G_202011_S_URL = "http://files.example/g_202011_S.epub"
 FILE_BODIES = {
     NWT_S_URL: b"SPANISH-NWT-EPUB-CONTENT",
     SJJM_S_URL: b"SPANISH-SJJM-TRACK1-720P-CONTENT",
     DOCID_S_URL: b"SPANISH-DOCID-TRACK1-720P-CONTENT",
+    G_202011_S_URL: b"SPANISH-AWAKE-202011-EPUB-CONTENT",
 }
 
 
@@ -46,21 +48,22 @@ _LANGUAGES = {
     ]
 }
 
-# PubMedia responses keyed by (pub symbol, langwritten). The vernacular (S)
-# entries carry real download URLs + checksums; the English (E) entries exist
-# only to supply English titles for --english-titles lookups.
+# PubMedia responses keyed by (identifier, issue, langwritten).
+# identifier is the pub symbol (str) or docid (int); issue is None for
+# non-periodicals. The vernacular (S) entries carry real download URLs +
+# checksums; the English (E) entries supply titles for --english-titles lookups.
 _PUBMEDIA = {
-    ("nwt", "S"): {
+    ("nwt", None, "S"): {
         "pubName": "La Biblia. Traducción del Nuevo Mundo (revisión del 2019)",
         "files": {"S": {"EPUB": [
             {"file": {"url": NWT_S_URL, "checksum": _md5(FILE_BODIES[NWT_S_URL])}}
         ]}},
     },
-    ("nwt", "E"): {
+    ("nwt", None, "E"): {
         "pubName": "New World Translation of the Holy Scriptures (2013 Revision)",
         "files": {"E": {"EPUB": [{"file": {"url": "http://files.example/nwt_E.epub"}}]}},
     },
-    ("sjjm", "S"): {
+    ("sjjm", None, "S"): {
         "pubName": "Cantemos con alegría",
         "files": {"S": {"MP4": [
             {"track": 0, "title": "Descargar todo (ZIP)", "label": "720p",
@@ -71,19 +74,31 @@ _PUBMEDIA = {
              "file": {"url": "http://files.example/sjjm_S_1_480p.mp4"}},
         ]}},
     },
-    ("sjjm", "E"): {
+    ("sjjm", None, "E"): {
         "pubName": "Sing Out Joyfully",
         "files": {"E": {"MP4": [
             {"track": 1, "title": "1. Jehovah&#39;s Attributes", "label": "720p",
              "file": {"url": "http://files.example/sjjm_E_1_720p.mp4"}},
         ]}},
     },
-    (502014331, "S"): {
+    (502014331, None, "S"): {
         "pubName": "Video por ID de documento",
         "files": {"S": {"MP4": [
             {"track": 1, "title": "Episodio 1", "label": "720p",
              "file": {"url": DOCID_S_URL, "checksum": _md5(FILE_BODIES[DOCID_S_URL])}},
         ]}},
+    },
+    ("g", "202011", "S"): {
+        "pubName": "¡Despertad!",
+        "formattedDate": "No. 3 2020",
+        "files": {"S": {"EPUB": [
+            {"file": {"url": G_202011_S_URL, "checksum": _md5(FILE_BODIES[G_202011_S_URL])}}
+        ]}},
+    },
+    ("g", "202011", "E"): {
+        "pubName": "Awake!",
+        "formattedDate": "No. 3 2020",
+        "files": {"E": {"EPUB": [{"file": {"url": "http://files.example/g_202011_E.epub"}}]}},
     },
 }
 
@@ -121,7 +136,7 @@ def _fake_get(url, params=None, timeout=None, stream=False, **kwargs):
         return FakeHTTP(json_data=_LANGUAGES)
     if url == api.PUBMEDIA_URL:
         identifier = params.get("docid") or params.get("pub")
-        key = (identifier, params["langwritten"])
+        key = (identifier, params.get("issue"), params["langwritten"])
         if key not in _PUBMEDIA:
             return FakeHTTP(status=404)
         return FakeHTTP(json_data=_PUBMEDIA[key])
@@ -207,6 +222,48 @@ def test_cli_dry_run_writes_nothing(cli_env, monkeypatch, capsys):
     assert "[dry-run]" in out
     assert "Dry run complete" in out
     assert not cli_env.exists()  # nothing written to the output directory
+
+
+def test_cli_periodical_download(tmp_path, monkeypatch, capsys):
+    """A symbol-dash-issue entry downloads via the issue API param, and the
+    issue date appears in the filename. --english-titles works for periodicals."""
+    (tmp_path / "products.yaml").write_text(
+        "languages: [S]\n"
+        "default:\n  formats: [EPUB]\n"
+        "products: ['g-202011']\n"
+    )
+    (tmp_path / "videos.yaml").write_text("languages: []\nvideos: []\n")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(requests, "get", _fake_get)
+    out_dir = tmp_path / "out"
+
+    monkeypatch.setattr(sys, "argv", ["harbor-fetch", "--only-products", "-o", str(out_dir)])
+    main()
+
+    lang_dir = out_dir / "S-Spanish"
+    expected = lang_dir / "g-202011-S-¡Despertad! No. 3 2020.epub"
+    assert expected.read_bytes() == FILE_BODIES[G_202011_S_URL]
+    assert "1 downloaded" in capsys.readouterr().out
+
+
+def test_cli_periodical_english_titles(tmp_path, monkeypatch):
+    """--english-titles resolves the English issue title for periodicals."""
+    (tmp_path / "products.yaml").write_text(
+        "languages: [S]\n"
+        "default:\n  formats: [EPUB]\n"
+        "products: ['g-202011']\n"
+    )
+    (tmp_path / "videos.yaml").write_text("languages: []\nvideos: []\n")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(requests, "get", _fake_get)
+    out_dir = tmp_path / "out"
+
+    monkeypatch.setattr(sys, "argv", ["harbor-fetch", "--only-products", "--english-titles", "-o", str(out_dir)])
+    main()
+
+    lang_dir = out_dir / "S-Spanish"
+    assert (lang_dir / "g-202011-S-Awake! No. 3 2020.epub").exists()
+    assert not (lang_dir / "g-202011-S-¡Despertad! No. 3 2020.epub").exists()
 
 
 def test_cli_docid_video_download(tmp_path, monkeypatch, capsys):
