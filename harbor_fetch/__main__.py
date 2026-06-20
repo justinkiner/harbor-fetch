@@ -115,11 +115,32 @@ def main() -> None:
             "English edition exists). Default: vernacular titles."
         ),
     )
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument(
+        "--only-products",
+        action="store_true",
+        help="Download publications only; ignore videos.yaml",
+    )
+    mode_group.add_argument(
+        "--only-videos",
+        action="store_true",
+        help="Download videos only; ignore products.yaml",
+    )
     args = parser.parse_args()
 
     # ── Config ────────────────────────────────────────────────────────────────
     pub_languages, publications, default_formats = load_config()
     video_cfg = load_videos_config()
+
+    if args.only_videos:
+        publications = []
+        pub_languages = []
+    elif args.only_products:
+        video_cfg = video_cfg.__class__(
+            languages=[], videos=[],
+            default_formats=video_cfg.default_formats,
+            default_resolution=video_cfg.default_resolution,
+        )
 
     if not pub_languages and not video_cfg.languages:
         sys.exit("Error: no language codes found in products.yaml or videos.yaml")
