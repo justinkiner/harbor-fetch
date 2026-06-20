@@ -1,11 +1,72 @@
 languages:
-  - E # English
-  - S # Spanish
-  - A # Arabic
-  - TG # Tagalog
-  - K # Ukranian
-  - U # Russian
-  - HI # Hindi
+  - E   # English
+  - A   # Arabic
+  - AL  # Albanian
+  - B   # Czech
+  - BE  # Bengali
+  - BEL # Belorussian
+  - BI  # Bicol
+  - BL  # Bulgarian
+  - BU  # Myanmar
+  - C   # Croatian
+  - CB  # Cambodian
+  - CH  # Chinese Mandarin (Traditional)
+  - CHC # Chinese Cantonese (Traditional)
+  - CHG # Chinese (Shanghainese)
+  - CHK # Chinese (Yunnanese)
+  - CHS # Chinese Mandarin (Simplified)
+  - CNS # Chinese Cantonese (Simplified)
+  - CSN # Chinese (Sichuanese)
+  - CV  # Cebuano
+  - D   # Danish
+  - FI  # Finnish
+  - G   # Greek
+  - GE  # Georgian
+  - GU  # Gujarati
+  - H   # Hungarian
+  - HI  # Hindi
+  - HV  # Hiligaynon
+  - I   # Italian
+  - IL  # Iloko
+  - IN  # Indonesian
+  - J   # Japanese
+  - JA  # Javanese
+  - K   # Ukrainian
+  - KA  # Kannada
+  - KO  # Korean
+  - L   # Lithuanian
+  - LT  # Latvian
+  - M   # Romanian
+  - MG  # Malagasy
+  - MH  # Marshallese
+  - ML  # Malay
+  - MT  # Maltese
+  - MY  # Malayalam
+  - N   # Norwegian
+  - NP  # Nepali
+  - O   # Dutch
+  - P   # Polish
+  - PJ  # Punjabi
+  - PN  # Pangasinan
+  - REA # Armenian
+  - S   # Spanish
+  - SB  # Serbian (Cyrillic)
+  - SBO # Serbian (Roman)
+  - SI  # Thai
+  - SM  # Samoan
+  - SN  # Sinhala
+  - ST  # Estonian
+  - SV  # Slovenian
+  - T   # Portuguese (Brazil)
+  - TG  # Tagalog
+  - TK  # Turkish
+  - TL  # Tamil
+  - U   # Russian
+  - UD  # Urdu
+  - V   # Slovak
+  - VT  # Vietnamese
+  - X   # German
+  - Z   # Swedish
 
 default:
   formats:
@@ -14,10 +75,68 @@ default:
     - PDF
 
 products:
-  - lff
-  - lffi
-  - nwt
-  - es26
-  - es27
-  - jwlb:E:APK
-  - wcg:E
+  - jwlb:E:APK # JW Library app for Andriod 
+  - es26      # Examining the Scriptures Daily—2026
+  - es27      # Examining the Scriptures Daily—2027 
+  - hf        # Your Family Can Be Happy
+  - lff       # Enjoy Life Forever!—An Interactive Bible Course
+  - lffi      # Enjoy Life Forever!—Introductory Bible Lessons
+  - nwt       # New World Translation of the Holy Scriptures (2013 Revision)
+  - rj        # Return to Jehovah
+  - wcg       # Walk Courageously With God
+  - we        # When Someone You Love Dies
+
+  # Magazine-based publications:
+
+  # 2018
+  - g-201803  # Awake! No. 1 2018
+  - g-201807  # Awake! No. 2 2018
+  - g-201811  # Awake! No. 3 2018
+  - wp-201801 # Watchtower No. 1 2018
+  - wp-201805 # Watchtower No. 2 2018
+  - wp-201809 # Watchtower No. 3 2018
+
+  # 2019
+  - g-201903  # Awake! No. 1 2019
+  - g-201907  # Awake! No. 2 2019
+  - g-201911  # Awake! No. 3 2019
+  - wp-201901 # Watchtower No. 1 2019
+  - wp-201905 # Watchtower No. 2 2019
+  - wp-201909 # Watchtower No. 3 2019
+
+  # 2020
+  - g-202003  # Awake! No. 1 2020
+  - g-202007  # Awake! No. 2 2020
+  - g-202011  # Awake! No. 3 2020
+  - wp-202001 # Watchtower No. 1 2020
+  - wp-202005 # Watchtower No. 2 2020
+  - wp-202009 # Watchtower No. 3 2020
+  
+  # 2021 
+  - g-202103  # Awake! No. 1 2021
+  - g-202107  # Awake! No. 2 2021
+  - g-202111  # Awake! No. 3 2021
+  - wp-202101 # Watchtower No. 1 2021
+  - wp-202105 # Watchtower No. 2 2021
+  - wp-202109 # Watchtower No. 3 2021
+  
+  # 2022
+  - g-202207  # Awake! No. 1 2022
+  - wp-202205 # Watchtower No. 1 2022
+
+  # 2023
+  - g-202311  # Awake! No. 1 2023
+  - wp-202305 # Watchtower No. 1 2023
+  
+  # 2024
+  - g-202411  # Awake! No. 1 2024
+  - wp-202407 # Watchtower No. 1 2024
+  
+  # 2025 
+  - g-202511  # Awake! No. 1 2025
+  - wp-202509 # Watchtower No. 1 2025
+
+  # 2026
+  - g-202611  # Awake! No. 1 2026
+  - wp-202609 # Watchtower No. 1 2026
+ 
