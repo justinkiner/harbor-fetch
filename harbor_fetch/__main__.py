@@ -270,6 +270,7 @@ def main() -> None:
                         resolution=video_cfg.default_resolution,
                         formats=video_fmt_str,
                         tracks=video.tracks,
+                        docid=video.docid,
                     )
                 except HTTPError as exc:
                     msg, is_err = _http_error_message(exc, info.name)
@@ -292,7 +293,7 @@ def main() -> None:
                 # vernacular title when no English edition/track exists.
                 english_titles = {}
                 if args.english_titles:
-                    english_titles = fetch_video_english_titles(video.symbol, video_fmt_str)
+                    english_titles = fetch_video_english_titles(video.symbol, video_fmt_str, video.docid)
 
                 for item in items:
                     filename = video_filename(item, english_titles.get(item.track))

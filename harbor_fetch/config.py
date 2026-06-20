@@ -15,8 +15,9 @@ class Publication:
 
 @dataclass
 class Video:
-    symbol: str
+    symbol: str               # publication symbol, or string form of the docid
     tracks: list[int] | None  # None means all tracks; [1, 3] means only tracks 1 and 3
+    docid: int | None = None  # set when the entry is a numeric document ID
 
 
 @dataclass
@@ -75,14 +76,20 @@ def _parse_video(entry: str) -> Video:
     """Parse a videos.yaml entry into a Video.
 
     Supported forms:
-      wsb          → all tracks
-      wsb:1,3,5    → only tracks 1, 3, and 5
+      wsb          → all tracks (symbol-based)
+      wsb:1,3,5    → only tracks 1, 3, and 5 (symbol-based)
+      502014331    → all tracks (docid-based)
+      502014331:2  → track 2 only (docid-based)
     """
     if ":" in entry:
         symbol, track_str = entry.split(":", 1)
         tracks = [int(t.strip()) for t in track_str.split(",") if t.strip().isdigit()]
-        return Video(symbol=symbol.strip(), tracks=tracks or None)
-    return Video(symbol=entry.strip(), tracks=None)
+    else:
+        symbol, tracks = entry, None
+
+    symbol = symbol.strip()
+    docid = int(symbol) if symbol.isdigit() else None
+    return Video(symbol=symbol, tracks=tracks or None, docid=docid)
 
 
 def load_videos_config(base_dir: Path | None = None) -> VideoConfig:

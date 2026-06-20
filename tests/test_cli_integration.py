@@ -27,9 +27,11 @@ from harbor_fetch.__main__ import main
 # "checksum" so the real checksum-skip path can be exercised on a re-run.
 NWT_S_URL = "http://files.example/nwt_S.epub"
 SJJM_S_URL = "http://files.example/sjjm_S_1_720p.mp4"
+DOCID_S_URL = "http://files.example/docid_502014331_S_1_720p.mp4"
 FILE_BODIES = {
     NWT_S_URL: b"SPANISH-NWT-EPUB-CONTENT",
     SJJM_S_URL: b"SPANISH-SJJM-TRACK1-720P-CONTENT",
+    DOCID_S_URL: b"SPANISH-DOCID-TRACK1-720P-CONTENT",
 }
 
 
@@ -76,6 +78,13 @@ _PUBMEDIA = {
              "file": {"url": "http://files.example/sjjm_E_1_720p.mp4"}},
         ]}},
     },
+    (502014331, "S"): {
+        "pubName": "Video por ID de documento",
+        "files": {"S": {"MP4": [
+            {"track": 1, "title": "Episodio 1", "label": "720p",
+             "file": {"url": DOCID_S_URL, "checksum": _md5(FILE_BODIES[DOCID_S_URL])}},
+        ]}},
+    },
 }
 
 
@@ -111,7 +120,8 @@ def _fake_get(url, params=None, timeout=None, stream=False, **kwargs):
     if url == api.LANGUAGES_URL:
         return FakeHTTP(json_data=_LANGUAGES)
     if url == api.PUBMEDIA_URL:
-        key = (params["pub"], params["langwritten"])
+        identifier = params.get("docid") or params.get("pub")
+        key = (identifier, params["langwritten"])
         if key not in _PUBMEDIA:
             return FakeHTTP(status=404)
         return FakeHTTP(json_data=_PUBMEDIA[key])
@@ -197,3 +207,29 @@ def test_cli_dry_run_writes_nothing(cli_env, monkeypatch, capsys):
     assert "[dry-run]" in out
     assert "Dry run complete" in out
     assert not cli_env.exists()  # nothing written to the output directory
+
+
+def test_cli_docid_video_download(tmp_path, monkeypatch, capsys):
+    """A numeric docid entry in videos.yaml downloads via the docid API param,
+    with track filtering and language iteration working identically to a symbol."""
+    (tmp_path / "products.yaml").write_text(
+        "languages: [S]\ndefault:\n  formats: [EPUB]\nproducts: []\n"
+    )
+    (tmp_path / "videos.yaml").write_text(
+        "languages: [S]\n"
+        "defaults:\n  resolution: 720p\n  formats: [mp4]\n"
+        "videos: ['502014331:1']\n"
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(requests, "get", _fake_get)
+    out_dir = tmp_path / "out"
+
+    monkeypatch.setattr(sys, "argv", ["harbor-fetch", "--only-videos", "-o", str(out_dir)])
+    main()
+
+    lang_dir = out_dir / "S-Spanish"
+    expected = lang_dir / "502014331-S-720p-Episodio 1.mp4"
+    assert expected.read_bytes() == FILE_BODIES[DOCID_S_URL]
+
+    out = capsys.readouterr().out
+    assert "1 downloaded" in out

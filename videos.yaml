@@ -1,11 +1,23 @@
 languages:
-  - E # English
-  - S # Spanish
-  - A # Arabic
-  - TG # Tagalog
-  - K # Ukranian
-  - U # Russian
-  - HI # Hindi
+  - E    # English
+  - C    # Croatian
+  - CHS  # Chinese Mandarin (Simplified)
+  - CV   # Cebuano
+  - HI   # Hindi
+  - HV   # Hiligaynon
+  - IN   # Indonesian
+  - K    # Ukrainian
+  - KO   # Korean
+  - M    # Romanian
+  - MY   # Malayalam
+  - S    # Spanish
+  - SI   # Thai
+  - T    # Portuguese (Brazil)
+  - TG   # Tagalog
+  - TK   # Turkish
+  - TL   # Tamil
+  - U    # Russian
+  - YU   # Central Alaskan Yupik
 
 defaults:
   resolution: 720p
@@ -14,5 +26,20 @@ defaults:
     - mp4
 
 videos:
-  - wsb
-  - gnj:1,2,3,4,5,6
+  - wsb     # Why Study the Bible? (Both versions)
+  - gnj:1,2,3,4,5,6 # Good News According to Jesus (Parts 1-6)
+  - imv:5     # Introductions for the Ministry
+  - whbs      # What Happens at a Bible Study?
+  - whkh      # What Happens at a Kingdom Hall?
+
+# Document-based videos:
+  - 502014331  # Does God Have a Name?
+  - 502015752  # How Can We Be Sure the Bible Is True?
+  - 502016852  # Who Is the Author of the Bible?
+  - 502016853  # Why Did Jesus Die?
+  - 502017850  # What Is God's Kingdom?
+  - 502017855  # Why Did God Create the Earth?
+  - 502017858  # What Is the Condition of the Dead?
+  - 502018850  # Why Does God Allow Suffering?
+  - 502018853  # Does God Accept All Forms of Worship?
+  - 502018856  # Does God Listen to All Prayers?

@@ -140,6 +140,7 @@ def fetch_video_links(
     resolution: str,
     formats: str = "MP4",
     tracks: list[int] | None = None,
+    docid: int | None = None,
 ) -> list[VideoItem]:
     """Return one VideoItem per track at the requested resolution for a video publication.
 
@@ -149,15 +150,19 @@ def fetch_video_links(
     of all files rather than individual videos.
 
     If *tracks* is provided, only those track numbers are included.
+    Pass *docid* instead of a publication symbol when querying by document ID.
     """
-    params = {
+    params: dict = {
         "output": "json",
-        "pub": symbol,
         "fileformat": formats,
         "alllangs": "0",
         "langwritten": lang_code,
         "txtCMSLang": lang_code,
     }
+    if docid is not None:
+        params["docid"] = docid
+    else:
+        params["pub"] = symbol
     resp = requests.get(PUBMEDIA_URL, params=params, timeout=30)
     resp.raise_for_status()
     data = resp.json()
@@ -245,24 +250,28 @@ def fetch_pub_english_name(pub_symbol: str, formats: str = "EPUB,PDF,JWPUB") -> 
 
 
 @functools.lru_cache(maxsize=None)
-def fetch_video_english_titles(symbol: str, formats: str = "MP4") -> dict[int, str]:
+def fetch_video_english_titles(symbol: str, formats: str = "MP4", docid: int | None = None) -> dict[int, str]:
     """Return a {track_number: English title} map for a video publication.
 
     Queries with langwritten=E and collects one title per track across all
     resolutions (resolution is irrelevant to the title). Returns an empty map
     on a 404 or request error, so callers can fall back to vernacular titles.
-    Cached per (symbol, formats).
+    Cached per (symbol, formats, docid).
 
     The returned dict is cached and shared — callers must not mutate it.
+    Pass *docid* when querying by document ID instead of publication symbol.
     """
-    params = {
+    params: dict = {
         "output": "json",
-        "pub": symbol,
         "fileformat": formats,
         "alllangs": "0",
         "langwritten": "E",
         "txtCMSLang": "E",
     }
+    if docid is not None:
+        params["docid"] = docid
+    else:
+        params["pub"] = symbol
     try:
         resp = requests.get(PUBMEDIA_URL, params=params, timeout=30)
         resp.raise_for_status()
