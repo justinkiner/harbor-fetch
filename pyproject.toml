@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harbor-fetch"
-version = "0.5.2"
+version = "0.6.0"
 description = "Download JW.org publications in multiple languages and formats"
 requires-python = ">=3.10"
 dependencies = [
