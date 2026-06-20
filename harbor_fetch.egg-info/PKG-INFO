@@ -1,9 +1,0 @@
-Metadata-Version: 2.4
-Name: harbor-fetch
-Version: 0.3.0
-Summary: Download JW.org publications in multiple languages and formats
-Requires-Python: >=3.10
-License-File: LICENSE
-Requires-Dist: requests>=2.31
-Requires-Dist: pyyaml>=6.0
-Dynamic: license-file
