@@ -58,6 +58,12 @@ harbor-fetch --formats PDF,EPUB
 
 # Name saved files using English titles instead of vernacular titles
 harbor-fetch --english-titles
+
+# Download publications only (ignore videos.yaml)
+harbor-fetch --only-products
+
+# Download videos only (ignore products.yaml)
+harbor-fetch --only-videos
 ```
 
 On Windows, replace `harbor-fetch` with `harbor-fetch.exe` in any command above.
@@ -114,9 +120,12 @@ defaults:
 videos:
   - wsb             # all tracks
   - sjjm:1,3,5      # only tracks 1, 3, and 5
+  - gnj:2           # track 2 only
 ```
 
 **Video entry format:** `symbol{:track1,track2,...}`
+
+Tracks correspond to individual episodes or parts within a video series. Omitting the track list downloads every available track; specifying a comma-separated list downloads only those tracks. For example, `gnj:1,2,3` fetches only the first three episodes of the series.
 
 Available resolutions: `240p`, `360p`, `480p`, `720p`.
 
